@@ -2,6 +2,8 @@
 namespace App\Controller;
 
 use App\Controller\AppController;
+use Cake\Filesystem\Folder;
+use Cake\Filesystem\File;
 
 /**
  * Elements Controller
@@ -10,7 +12,12 @@ use App\Controller\AppController;
  */
 class ElementsController extends AppController
 {
-
+    public function initialize()
+    {
+        parent::initialize();
+        $this->loadComponent('RequestHandler');
+    }
+    
     /**
      * Index method
      *
@@ -20,6 +27,28 @@ class ElementsController extends AppController
     {
         $this->set('elements', $this->paginate($this->Elements));
         $this->set('_serialize', ['elements']);
+    }
+    
+    public function search(){
+        $client = new \Github\Client();
+        
+        if ($this->request->is('post')) {
+            $user = $this->request->data('user');
+            $repo = $this->request->data('repo');
+            $fileContent =  $client->api('repo')->contents()->download($user, $repo, 'element.json');
+            $this->set('element', $fileContent);
+            $this->set('_serialize', ['element']);
+        }
+    }
+    
+    
+    private function getRepository($user, $repo){
+        $client = new \Github\Client();
+        
+            $file = $client->api('repo')->contents()->archive($user, $repo, 'zip');
+            $this->response->body($file);
+            $this->response->type('zip');
+            return $this->response;
     }
 
     /**
