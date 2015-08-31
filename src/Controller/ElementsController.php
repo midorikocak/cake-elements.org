@@ -42,13 +42,16 @@ class ElementsController extends AppController
     }
     
     
-    private function getRepository($user, $repo){
+    public function getRepository(){
         $client = new \Github\Client();
-        
+        if ($this->request->is('post')) {
+            $user = $this->request->data('user');
+            $repo = $this->request->data('repo');
             $file = $client->api('repo')->contents()->archive($user, $repo, 'zip');
             $this->response->body($file);
             $this->response->type('zip');
             return $this->response;
+        }
     }
 
     /**
